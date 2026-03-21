@@ -2,11 +2,15 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth.store';
 import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
+import VaultsPage from '@/pages/VaultsPage';
+import VaultDetailPage from '@/pages/VaultDetailPage';
+import GeneratorPage from '@/pages/GeneratorPage';
+import Layout from '@/components/Layout';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   if (!isAuthenticated) return <Navigate to="/login" replace />;
-  return <>{children}</>;
+  return <Layout>{children}</Layout>;
 }
 
 export default function App() {
@@ -15,16 +19,9 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route
-          path="/vaults"
-          element={
-            <ProtectedRoute>
-              <div className="min-h-screen bg-zinc-950 text-zinc-100 p-8">
-                <h1 className="text-2xl font-bold">Vaults (coming next)</h1>
-              </div>
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/vaults" element={<ProtectedRoute><VaultsPage /></ProtectedRoute>} />
+        <Route path="/vaults/:id" element={<ProtectedRoute><VaultDetailPage /></ProtectedRoute>} />
+        <Route path="/generator" element={<ProtectedRoute><GeneratorPage /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
