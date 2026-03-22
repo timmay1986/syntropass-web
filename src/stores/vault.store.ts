@@ -37,6 +37,7 @@ interface VaultState {
   deleteVault: (vaultId: string) => Promise<void>;
   loadItems: (vaultId: string) => Promise<void>;
   createItem: (vaultId: string, data: Record<string, any>, type?: string) => Promise<void>;
+  updateItem: (vaultId: string, itemId: string, data: Record<string, any>) => Promise<void>;
   deleteItem: (vaultId: string, itemId: string) => Promise<void>;
 }
 
@@ -132,6 +133,22 @@ export const useVaultStore = create<VaultState>((set, get) => ({
       method: 'POST',
       body: JSON.stringify({
         type,
+        encryptedData: encodeEncrypted(encrypted),
+      }),
+    });
+
+    await get().loadItems(vaultId);
+  },
+
+  updateItem: async (vaultId: string, itemId: string, data: Record<string, any>) => {
+    const vaultKey = get().vaultKeys.get(vaultId);
+    if (!vaultKey) return;
+
+    const encrypted = cryptoEncryptItem(vaultKey, data);
+
+    await api(`/api/vaults/${vaultId}/items/${itemId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
         encryptedData: encodeEncrypted(encrypted),
       }),
     });

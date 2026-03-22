@@ -3,7 +3,7 @@ import CopyButton from './CopyButton';
 
 interface Props {
   item: { id: string; type: string; data: Record<string, any>; favorite: boolean };
-  onDelete: () => void;
+  onDelete: (e?: React.MouseEvent) => void;
 }
 
 export default function ItemCard({ item, onDelete }: Props) {
@@ -16,7 +16,7 @@ export default function ItemCard({ item, onDelete }: Props) {
         <h3 className="font-medium text-zinc-100">{data.name || 'Untitled'}</h3>
         <div className="flex items-center gap-2">
           <span className="text-xs text-zinc-600 bg-zinc-800 px-2 py-0.5 rounded">{item.type}</span>
-          <button onClick={onDelete} className="text-zinc-600 hover:text-red-400 text-sm">Delete</button>
+          <button onClick={(e) => { e.stopPropagation(); onDelete(e); }} className="text-zinc-600 hover:text-red-400 text-sm">Delete</button>
         </div>
       </div>
 
