@@ -1,5 +1,5 @@
 import {
-  createUserKeyBundle, unlockUserKeys,
+  createUserKeyBundle, unlockUserKeys, deriveKeys, hashAuthKey,
   createVault, openVault, decryptVaultName, encryptItem, decryptItem,
   generatePassword, generatePassphrase, KDF_DEFAULTS,
   type KdfParams, type UserKeyBundle, type EncryptedData,
@@ -59,6 +59,13 @@ export async function loginCrypto(password: string, serverUser: any) {
 
   const keys = await unlockUserKeys(password, bundle);
   return { authKeyHash: keys.authKeyHash, keys };
+}
+
+export async function deriveAuthHash(password: string, kdfSalt: string, kdfMemory: number, kdfIterations: number): Promise<string> {
+  const salt = Uint8Array.from(atob(kdfSalt), c => c.charCodeAt(0));
+  const params: KdfParams = { memory: kdfMemory, iterations: kdfIterations, parallelism: 4 };
+  const { authKey } = await deriveKeys(password, salt, params);
+  return hashAuthKey(authKey);
 }
 
 export { createVault, openVault, decryptVaultName, encryptItem, decryptItem, generatePassword, generatePassphrase };

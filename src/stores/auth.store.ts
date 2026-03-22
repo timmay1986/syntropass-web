@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { api, setAccessToken } from '@/api/client';
-import { registerCrypto, loginCrypto } from '@/lib/crypto';
+import { registerCrypto, loginCrypto, deriveAuthHash } from '@/lib/crypto';
 import type { UnlockedUserKeys } from '@syntropass/crypto';
 
 interface AuthState {
@@ -48,24 +48,27 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (email, password, tenantSlug) => {
     set({ isLoading: true, error: null });
     try {
-      // TODO: The authKeyHash sent here is derived with a NEW random salt each call,
-      // which will NOT match the hash stored at registration (which used a different salt).
-      // CORRECT FIX: Add a /api/auth/prelogin endpoint that returns the user's kdfSalt
-      // for a given email+tenantSlug, then derive authKeyHash with that salt before
-      // calling this endpoint. For now, registration + same-session use works because
-      // keys are already in memory. Cross-session login requires the prelogin endpoint.
-      //
-      // Workaround: derive a temporary bundle to get a hash. The backend must be
-      // configured to accept this or use a prelogin flow.
-      const tempBundle = await registerCrypto(password);
-      const authKeyHash = tempBundle.authKeyHash;
+      // Step 1: Get kdfSalt from server
+      const prelogin = await api('/api/auth/prelogin', {
+        method: 'POST',
+        body: JSON.stringify({ email, tenantSlug }),
+      });
 
+      // Step 2: Derive auth key hash with the SAME salt used at registration
+      const authKeyHash = await deriveAuthHash(
+        password,
+        prelogin.kdfSalt,
+        prelogin.kdfMemory,
+        prelogin.kdfIterations,
+      );
+
+      // Step 3: Login
       const result = await api('/api/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, tenantSlug, authKeyHash }),
       });
       setAccessToken(result.accessToken);
-      // The server must return kdfSalt in result.user for key unlocking to work correctly
+
       const { keys } = await loginCrypto(password, result.user);
       set({ isAuthenticated: true, user: result.user, tenant: result.tenant, keys, isLoading: false });
     } catch (err: any) {
