@@ -17,7 +17,12 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
-  isAuthenticated: false, user: null, tenant: null, keys: null, isLoading: false, error: null,
+  // Check if we have a token from previous session (survives reload)
+  isAuthenticated: !!sessionStorage.getItem('sp_access_token'),
+  user: JSON.parse(sessionStorage.getItem('sp_user') || 'null'),
+  tenant: JSON.parse(sessionStorage.getItem('sp_tenant') || 'null'),
+  keys: null, // Keys can't be persisted (security), vault operations need re-login
+  isLoading: false, error: null,
 
   register: async (email, password, tenantName, tenantSlug) => {
     set({ isLoading: true, error: null });
@@ -39,6 +44,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       setAccessToken(result.accessToken);
       // After registration the server returns the user with kdfSalt — use it to unlock keys
       const { keys } = await loginCrypto(password, result.user);
+      sessionStorage.setItem('sp_user', JSON.stringify(result.user));
+      sessionStorage.setItem('sp_tenant', JSON.stringify(result.tenant));
       set({ isAuthenticated: true, user: result.user, tenant: result.tenant, keys, isLoading: false });
     } catch (err: any) {
       set({ error: err.message, isLoading: false });
@@ -70,6 +77,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       setAccessToken(result.accessToken);
 
       const { keys } = await loginCrypto(password, result.user);
+      sessionStorage.setItem('sp_user', JSON.stringify(result.user));
+      sessionStorage.setItem('sp_tenant', JSON.stringify(result.tenant));
       set({ isAuthenticated: true, user: result.user, tenant: result.tenant, keys, isLoading: false });
     } catch (err: any) {
       set({ error: err.message, isLoading: false });
@@ -79,6 +88,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: async () => {
     try { await api('/api/auth/logout', { method: 'POST' }); } catch {}
     setAccessToken(null);
+    sessionStorage.removeItem('sp_user');
+    sessionStorage.removeItem('sp_tenant');
     set({ isAuthenticated: false, user: null, tenant: null, keys: null });
   },
 
