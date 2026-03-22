@@ -1,6 +1,8 @@
 FROM node:22-alpine AS builder
 
 RUN apk add --no-cache git
+RUN git config --global url."https://".insteadOf ssh://git@
+RUN git config --global url."https://github.com/".insteadOf git@github.com:
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
