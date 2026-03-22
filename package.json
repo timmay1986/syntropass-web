@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@syntropass/crypto": "github:timmay1986/syntropass-crypto",
+    "@syntropass/crypto": "https://github.com/timmay1986/syntropass-crypto.git",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.577.0",
