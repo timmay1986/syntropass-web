@@ -4,8 +4,8 @@ RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 RUN git config --global url."https://".insteadOf ssh://git@
 RUN git config --global url."https://github.com/".insteadOf git@github.com:
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package.json ./
+RUN npm install
 COPY . .
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
