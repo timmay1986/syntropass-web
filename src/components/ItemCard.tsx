@@ -1,70 +1,41 @@
-import { useState } from 'react';
-import CopyButton from './CopyButton';
-
 interface Props {
   item: { id: string; type: string; data: Record<string, any>; favorite: boolean };
   onDelete: (e?: React.MouseEvent) => void;
 }
 
+const typeIcons: Record<string, string> = {
+  login: '🔑',
+  server: '🖥️',
+  database: '🗄️',
+  ssh_key: '🔐',
+  secure_note: '📝',
+  api_credential: '🔗',
+  password: '🔒',
+  document: '📄',
+  custom: '📦',
+};
+
 export default function ItemCard({ item, onDelete }: Props) {
-  const [showPassword, setShowPassword] = useState(false);
   const { data } = item;
+  const icon = typeIcons[item.type] || '📦';
+  const subtitle = data.username || data.url || data.notes?.substring(0, 50) || '';
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-3">
-      <div className="flex items-center justify-between">
-        <h3 className="font-medium text-zinc-100">{data.name || 'Untitled'}</h3>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-zinc-600 bg-zinc-800 px-2 py-0.5 rounded">{item.type}</span>
-          <button onClick={(e) => { e.stopPropagation(); onDelete(e); }} className="text-zinc-600 hover:text-red-400 text-sm">Delete</button>
-        </div>
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 flex items-center gap-3 hover:border-zinc-700 transition-colors">
+      <span className="text-lg shrink-0">{icon}</span>
+      <div className="flex-1 min-w-0">
+        <h3 className="font-medium text-zinc-100 text-sm truncate">{data.name || 'Untitled'}</h3>
+        {subtitle && (
+          <p className="text-xs text-zinc-500 truncate mt-0.5">{subtitle}</p>
+        )}
       </div>
-
-      {data.username && (
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs text-zinc-500">Username</p>
-            <p className="text-sm text-zinc-300">{data.username}</p>
-          </div>
-          <CopyButton value={data.username} />
-        </div>
-      )}
-
-      {data.password && (
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs text-zinc-500">Password</p>
-            <p className="text-sm text-zinc-300 font-mono">
-              {showPassword ? data.password : '••••••••••••'}
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setShowPassword(!showPassword)}
-              className="text-xs text-zinc-500 hover:text-zinc-300"
-            >
-              {showPassword ? 'Hide' : 'Show'}
-            </button>
-            <CopyButton value={data.password} />
-          </div>
-        </div>
-      )}
-
-      {data.url && (
-        <div>
-          <p className="text-xs text-zinc-500">URL</p>
-          <a href={data.url} target="_blank" rel="noopener" className="text-sm text-blue-400 hover:text-blue-300">
-            {data.url}
-          </a>
-        </div>
-      )}
-
-      {data.notes && (
-        <div>
-          <p className="text-xs text-zinc-500">Notes</p>
-          <p className="text-sm text-zinc-400">{data.notes}</p>
-        </div>
-      )}
+      <span className="text-[10px] text-zinc-600 bg-zinc-800 px-1.5 py-0.5 rounded shrink-0">{item.type}</span>
+      <button
+        onClick={(e) => { e.stopPropagation(); onDelete(e); }}
+        className="text-zinc-700 hover:text-red-400 text-xs shrink-0"
+      >
+        ✕
+      </button>
     </div>
   );
 }

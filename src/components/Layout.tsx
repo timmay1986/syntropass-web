@@ -8,6 +8,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const navItems = [
     { path: '/vaults', label: 'Vaults', icon: '🔐' },
     { path: '/generator', label: 'Generator', icon: '🎲' },
+    { path: '/tokens', label: 'API Tokens', icon: '🔗' },
   ];
 
   return (

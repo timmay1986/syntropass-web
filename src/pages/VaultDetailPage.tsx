@@ -47,9 +47,9 @@ export default function VaultDetailPage() {
   };
 
   return (
-    <div className="flex h-full gap-0">
-      {/* Left pane: item list */}
-      <div className={`flex-1 min-w-0 ${selectedItem ? 'hidden md:block md:max-w-sm lg:max-w-md border-r border-zinc-800' : ''}`}>
+    <div className="flex h-[calc(100vh-64px)] overflow-hidden">
+      {/* Left pane: item list — scrollable */}
+      <div className={`shrink-0 overflow-y-auto ${selectedItem ? 'hidden md:block w-80 lg:w-96 border-r border-zinc-800' : 'w-full'}`}>
         <div className="p-6">
           <div className="flex items-center gap-4 mb-6">
             <Link to="/vaults" className="text-zinc-500 hover:text-zinc-300">
@@ -106,7 +106,7 @@ export default function VaultDetailPage() {
 
       {/* Right pane: item editor */}
       {selectedItem && (
-        <div className="flex-1 min-w-0 md:block">
+        <div className="flex-1 min-w-0 overflow-y-auto h-full sticky top-0">
           <ItemEditor
             key={selectedItem.id}
             item={selectedItem as any}
