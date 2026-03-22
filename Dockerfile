@@ -1,6 +1,6 @@
-FROM node:22-alpine AS builder
+FROM node:22 AS builder
 
-RUN apk add --no-cache git
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 RUN git config --global url."https://".insteadOf ssh://git@
 RUN git config --global url."https://github.com/".insteadOf git@github.com:
 WORKDIR /app
