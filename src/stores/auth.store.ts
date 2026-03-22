@@ -21,7 +21,19 @@ export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: !!sessionStorage.getItem('sp_access_token'),
   user: JSON.parse(sessionStorage.getItem('sp_user') || 'null'),
   tenant: JSON.parse(sessionStorage.getItem('sp_tenant') || 'null'),
-  keys: null, // Keys can't be persisted (security), vault operations need re-login
+  keys: (() => {
+    try {
+      const stored = sessionStorage.getItem('sp_keys');
+      if (!stored) return null;
+      const parsed = JSON.parse(stored);
+      return {
+        symmetricKey: new Uint8Array(parsed.symmetricKey),
+        privateKey: new Uint8Array(parsed.privateKey),
+        publicKey: new Uint8Array(parsed.publicKey),
+        authKeyHash: parsed.authKeyHash,
+      };
+    } catch { return null; }
+  })(),
   isLoading: false, error: null,
 
   register: async (email, password, tenantName, tenantSlug) => {
@@ -46,6 +58,12 @@ export const useAuthStore = create<AuthState>((set) => ({
       const { keys } = await loginCrypto(password, result.user);
       sessionStorage.setItem('sp_user', JSON.stringify(result.user));
       sessionStorage.setItem('sp_tenant', JSON.stringify(result.tenant));
+      sessionStorage.setItem('sp_keys', JSON.stringify({
+        symmetricKey: Array.from(keys.symmetricKey),
+        privateKey: Array.from(keys.privateKey),
+        publicKey: Array.from(keys.publicKey),
+        authKeyHash: keys.authKeyHash,
+      }));
       set({ isAuthenticated: true, user: result.user, tenant: result.tenant, keys, isLoading: false });
     } catch (err: any) {
       set({ error: err.message, isLoading: false });
@@ -79,6 +97,12 @@ export const useAuthStore = create<AuthState>((set) => ({
       const { keys } = await loginCrypto(password, result.user);
       sessionStorage.setItem('sp_user', JSON.stringify(result.user));
       sessionStorage.setItem('sp_tenant', JSON.stringify(result.tenant));
+      sessionStorage.setItem('sp_keys', JSON.stringify({
+        symmetricKey: Array.from(keys.symmetricKey),
+        privateKey: Array.from(keys.privateKey),
+        publicKey: Array.from(keys.publicKey),
+        authKeyHash: keys.authKeyHash,
+      }));
       set({ isAuthenticated: true, user: result.user, tenant: result.tenant, keys, isLoading: false });
     } catch (err: any) {
       set({ error: err.message, isLoading: false });
@@ -90,6 +114,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     setAccessToken(null);
     sessionStorage.removeItem('sp_user');
     sessionStorage.removeItem('sp_tenant');
+    sessionStorage.removeItem('sp_keys');
     set({ isAuthenticated: false, user: null, tenant: null, keys: null });
   },
 

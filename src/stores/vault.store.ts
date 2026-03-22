@@ -51,25 +51,35 @@ export const useVaultStore = create<VaultState>((set, get) => ({
   loadVaults: async () => {
     set({ isLoading: true });
     const keys = useAuthStore.getState().keys;
-    if (!keys) return;
 
-    const serverVaults = await api<any[]>('/api/vaults');
+    try {
+      const serverVaults = await api<any[]>('/api/vaults');
 
-    const vaults: Vault[] = [];
-    const vaultKeys = new Map(get().vaultKeys);
+      const vaults: Vault[] = [];
+      const vaultKeys = new Map(get().vaultKeys);
 
-    for (const sv of serverVaults) {
-      try {
-        const vaultKey = openVault(keys.symmetricKey, decodeEncrypted(sv.encryptedKey));
-        const name = decryptVaultName(vaultKey, decodeEncrypted(sv.encryptedName));
-        vaultKeys.set(sv.id, vaultKey);
-        vaults.push({ id: sv.id, name, type: sv.type, createdAt: sv.createdAt });
-      } catch (err) {
-        console.error('Failed to decrypt vault:', sv.id, err);
+      for (const sv of serverVaults) {
+        if (keys) {
+          try {
+            const vaultKey = openVault(keys.symmetricKey, decodeEncrypted(sv.encryptedKey));
+            const name = decryptVaultName(vaultKey, decodeEncrypted(sv.encryptedName));
+            vaultKeys.set(sv.id, vaultKey);
+            vaults.push({ id: sv.id, name, type: sv.type, createdAt: sv.createdAt });
+          } catch (err) {
+            // Can't decrypt — show vault ID as fallback
+            vaults.push({ id: sv.id, name: `Vault ${sv.id.substring(0, 8)}...`, type: sv.type, createdAt: sv.createdAt });
+          }
+        } else {
+          // No keys (after reload) — show vault without decrypted name
+          vaults.push({ id: sv.id, name: `🔒 Locked vault`, type: sv.type, createdAt: sv.createdAt });
+        }
       }
-    }
 
-    set({ vaults, vaultKeys, isLoading: false });
+      set({ vaults, vaultKeys, isLoading: false });
+    } catch (err) {
+      console.error('Failed to load vaults:', err);
+      set({ isLoading: false });
+    }
   },
 
   createVault: async (name: string) => {
