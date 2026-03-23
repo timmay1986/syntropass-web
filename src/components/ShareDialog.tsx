@@ -39,14 +39,9 @@ export default function ShareDialog({ vaultId, vaultName, onClose }: Props) {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [sharesData, invitesData] = await Promise.all([
-        api<Share[]>(`/api/sharing/vaults/${vaultId}/shares`),
-        api<Invite[]>('/api/sharing/invites'),
-      ]);
-      setShares(sharesData || []);
-      // Filter invites to only show those for this vault
-      const vaultInvites = (invitesData || []).filter((inv: any) => inv.vaultId === vaultId);
-      setInvites(vaultInvites);
+      const data = await api<{ shares: Share[]; invites: Invite[] }>(`/api/sharing/vaults/${vaultId}/shares`);
+      setShares(data?.shares || []);
+      setInvites(data?.invites || []);
     } catch (err: any) {
       setError(err.message);
     } finally {
