@@ -88,7 +88,7 @@ export default function DashboardPage() {
   }, [allItems, search, tab]);
 
   const handleClick = (item: FlatItem) => {
-    navigate(`/vaults/${item.vaultId}?search=${encodeURIComponent(item.data.name || '')}`);
+    navigate(`/vaults/${item.vaultId}?item=${item.id}&search=${encodeURIComponent(item.data.name || '')}`);
   };
 
   return (

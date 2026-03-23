@@ -23,14 +23,17 @@ export default function VaultDetailPage() {
   }, [id]);
 
   // Keep selectedItem in sync when currentItems reload (e.g. after save)
-  // Also auto-select item matching search query from dashboard
+  // Also auto-select item from dashboard navigation
   useEffect(() => {
     if (selectedItem) {
       const refreshed = currentItems.find((i) => i.id === selectedItem.id);
       if (refreshed) setSelectedItem(refreshed);
-    } else if (search && currentItems.length > 0) {
-      const match = currentItems.find(i => (i.data.name || '').toLowerCase() === search.toLowerCase());
-      if (match) setSelectedItem(match);
+    } else if (currentItems.length > 0) {
+      const itemId = searchParams.get('item');
+      if (itemId) {
+        const match = currentItems.find(i => i.id === itemId);
+        if (match) setSelectedItem(match);
+      }
     }
   }, [currentItems]);
 
