@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { useVaultStore } from '@/stores/vault.store';
 import ItemCard from '@/components/ItemCard';
 import ItemForm from '@/components/ItemForm';
@@ -13,7 +13,8 @@ export default function VaultDetailPage() {
     useVaultStore();
   const [showForm, setShowForm] = useState(false);
   const [selectedItem, setSelectedItem] = useState<VaultItem | null>(null);
-  const [search, setSearch] = useState('');
+  const [searchParams] = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get('search') || '');
 
   const vault = vaults.find((v) => v.id === id);
 
@@ -22,10 +23,14 @@ export default function VaultDetailPage() {
   }, [id]);
 
   // Keep selectedItem in sync when currentItems reload (e.g. after save)
+  // Also auto-select item matching search query from dashboard
   useEffect(() => {
     if (selectedItem) {
       const refreshed = currentItems.find((i) => i.id === selectedItem.id);
       if (refreshed) setSelectedItem(refreshed);
+    } else if (search && currentItems.length > 0) {
+      const match = currentItems.find(i => (i.data.name || '').toLowerCase() === search.toLowerCase());
+      if (match) setSelectedItem(match);
     }
   }, [currentItems]);
 
