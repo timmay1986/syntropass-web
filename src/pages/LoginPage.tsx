@@ -3,14 +3,16 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth.store';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(localStorage.getItem('sp_last_email') || '');
   const [password, setPassword] = useState('');
-  const [tenantSlug, setTenantSlug] = useState('');
+  const [tenantSlug, setTenantSlug] = useState(localStorage.getItem('sp_last_tenant') || '');
   const { login, isLoading, error, clearError } = useAuthStore();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    localStorage.setItem('sp_last_email', email);
+    localStorage.setItem('sp_last_tenant', tenantSlug);
     await login(email, password, tenantSlug);
     if (useAuthStore.getState().isAuthenticated) navigate('/dashboard');
   };
