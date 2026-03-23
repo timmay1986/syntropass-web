@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/api/client';
 import { useAuthStore } from '@/stores/auth.store';
-import { receiveSharedVaultKey, type AsymmetricEncryptedData } from '@syntropass/crypto';
+import { receiveSharedVaultKey, symmetricEncrypt, type AsymmetricEncryptedData } from '@syntropass/crypto';
 
 interface Invite {
   id: string;
@@ -55,9 +55,12 @@ export default function InvitesPage() {
         // Decrypt the vault key using our private key
         const vaultKey = receiveSharedVaultKey(keys.privateKey, asymData);
 
-        // Pass the raw vault key back to the backend (base64 encoded)
-        // The backend wraps it in the invitee's symmetric key for storage
-        encryptedVaultKey = btoa(String.fromCharCode(...vaultKey));
+        // Re-encrypt vault key with our symmetric key so openVault() works
+        const reEncrypted = symmetricEncrypt(keys.symmetricKey, vaultKey);
+        encryptedVaultKey = JSON.stringify({
+          ciphertext: btoa(String.fromCharCode(...reEncrypted.ciphertext)),
+          nonce: btoa(String.fromCharCode(...reEncrypted.nonce)),
+        });
       }
 
       await api(`/api/sharing/invites/${invite.id}/respond`, {
