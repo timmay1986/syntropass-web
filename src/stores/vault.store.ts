@@ -39,6 +39,7 @@ interface VaultState {
   createItem: (vaultId: string, data: Record<string, any>, type?: string) => Promise<void>;
   updateItem: (vaultId: string, itemId: string, data: Record<string, any>) => Promise<void>;
   deleteItem: (vaultId: string, itemId: string) => Promise<void>;
+  toggleFavorite: (vaultId: string, itemId: string) => Promise<void>;
 }
 
 export const useVaultStore = create<VaultState>((set, get) => ({
@@ -168,6 +169,16 @@ export const useVaultStore = create<VaultState>((set, get) => ({
 
   deleteItem: async (vaultId: string, itemId: string) => {
     await api(`/api/vaults/${vaultId}/items/${itemId}`, { method: 'DELETE' });
+    await get().loadItems(vaultId);
+  },
+
+  toggleFavorite: async (vaultId: string, itemId: string) => {
+    const item = get().currentItems.find(i => i.id === itemId);
+    if (!item) return;
+    await api(`/api/vaults/${vaultId}/items/${itemId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ favorite: !item.favorite }),
+    });
     await get().loadItems(vaultId);
   },
 }));

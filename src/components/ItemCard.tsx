@@ -1,21 +1,16 @@
 interface Props {
   item: { id: string; type: string; data: Record<string, any>; favorite: boolean };
   onDelete: (e?: React.MouseEvent) => void;
+  onToggleFavorite?: (e?: React.MouseEvent) => void;
 }
 
 const typeIcons: Record<string, string> = {
-  login: '🔑',
-  server: '🖥️',
-  database: '🗄️',
-  ssh_key: '🔐',
-  secure_note: '📝',
-  api_credential: '🔗',
-  password: '🔒',
-  document: '📄',
-  custom: '📦',
+  login: '🔑', server: '🖥️', database: '🗄️', ssh_key: '🔐',
+  secure_note: '📝', api_credential: '🔗', password: '🔒',
+  document: '📄', custom: '📦',
 };
 
-export default function ItemCard({ item, onDelete }: Props) {
+export default function ItemCard({ item, onDelete, onToggleFavorite }: Props) {
   const { data } = item;
   const icon = typeIcons[item.type] || '📦';
   const subtitle = data.username || data.url || data.notes?.substring(0, 50) || '';
@@ -29,6 +24,15 @@ export default function ItemCard({ item, onDelete }: Props) {
           <p className="text-xs text-zinc-500 truncate mt-0.5">{subtitle}</p>
         )}
       </div>
+      {onToggleFavorite && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onToggleFavorite(e); }}
+          className={`shrink-0 text-sm transition-colors ${item.favorite ? 'text-yellow-500' : 'text-zinc-700 hover:text-yellow-500'}`}
+          title={item.favorite ? 'Remove favorite' : 'Add favorite'}
+        >
+          {item.favorite ? '★' : '☆'}
+        </button>
+      )}
       <span className="text-[10px] text-zinc-600 bg-zinc-800 px-1.5 py-0.5 rounded shrink-0">{item.type}</span>
       <button
         onClick={(e) => { e.stopPropagation(); onDelete(e); }}

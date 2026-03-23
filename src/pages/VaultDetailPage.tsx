@@ -9,7 +9,7 @@ type VaultItem = { id: string; type: string; data: Record<string, any>; favorite
 
 export default function VaultDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { vaults, currentItems, loadItems, createItem, updateItem, deleteItem, isLoading } =
+  const { vaults, currentItems, loadItems, createItem, updateItem, deleteItem, toggleFavorite, isLoading } =
     useVaultStore();
   const [showForm, setShowForm] = useState(false);
   const [selectedItem, setSelectedItem] = useState<VaultItem | null>(null);
@@ -107,6 +107,10 @@ export default function VaultDetailPage() {
                 >
                   <ItemCard
                     item={item}
+                    onToggleFavorite={(e) => {
+                      e?.stopPropagation?.();
+                      toggleFavorite(id!, item.id);
+                    }}
                     onDelete={(e) => {
                       e?.stopPropagation?.();
                       deleteItem(id!, item.id);
