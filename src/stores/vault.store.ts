@@ -152,18 +152,25 @@ export const useVaultStore = create<VaultState>((set, get) => ({
   },
 
   updateItem: async (vaultId: string, itemId: string, data: Record<string, any>) => {
+    console.log('[SP] updateItem', vaultId, itemId);
     const vaultKey = get().vaultKeys.get(vaultId);
-    if (!vaultKey) return;
-
-    const encrypted = cryptoEncryptItem(vaultKey, data);
-
-    await api(`/api/vaults/${vaultId}/items/${itemId}`, {
-      method: 'PUT',
-      body: JSON.stringify({
-        encryptedData: encodeEncrypted(encrypted),
-      }),
-    });
-
+    if (!vaultKey) {
+      console.error('[SP] No vault key for', vaultId, '- reloading vaults');
+      await get().loadVaults();
+      const retryKey = get().vaultKeys.get(vaultId);
+      if (!retryKey) { console.error('[SP] Still no vault key'); return; }
+      const encrypted = cryptoEncryptItem(retryKey, data);
+      await api(`/api/vaults/${vaultId}/items/${itemId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ encryptedData: encodeEncrypted(encrypted) }),
+      });
+    } else {
+      const encrypted = cryptoEncryptItem(vaultKey, data);
+      await api(`/api/vaults/${vaultId}/items/${itemId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ encryptedData: encodeEncrypted(encrypted) }),
+      });
+    }
     await get().loadItems(vaultId);
   },
 
