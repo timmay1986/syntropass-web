@@ -89,6 +89,7 @@ export default function ShareDialog({ vaultId, vaultName, onClose }: Props) {
           email: email.trim(),
           permission,
           encryptedVaultKey,
+          vaultName,
         }),
       });
 
