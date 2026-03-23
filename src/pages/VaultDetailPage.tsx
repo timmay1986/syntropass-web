@@ -22,16 +22,23 @@ export default function VaultDetailPage() {
     if (id) loadItems(id);
   }, [id]);
 
-  // Keep selectedItem in sync when currentItems reload (e.g. after save)
-  // Also auto-select item from dashboard navigation
+  // Keep selectedItem in sync when currentItems reload
+  // Auto-select item from dashboard navigation (by ID or name)
   useEffect(() => {
     if (selectedItem) {
       const refreshed = currentItems.find((i) => i.id === selectedItem.id);
       if (refreshed) setSelectedItem(refreshed);
     } else if (currentItems.length > 0) {
       const itemId = searchParams.get('item');
+      const searchName = searchParams.get('search');
       if (itemId) {
         const match = currentItems.find(i => i.id === itemId);
+        if (match) { setSelectedItem(match); return; }
+      }
+      if (searchName) {
+        const match = currentItems.find(i =>
+          (i.data.name || '').toLowerCase() === searchName.toLowerCase()
+        );
         if (match) setSelectedItem(match);
       }
     }
