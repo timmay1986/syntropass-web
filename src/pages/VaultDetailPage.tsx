@@ -13,6 +13,7 @@ export default function VaultDetailPage() {
     useVaultStore();
   const [showForm, setShowForm] = useState(false);
   const [selectedItem, setSelectedItem] = useState<VaultItem | null>(null);
+  const [search, setSearch] = useState('');
 
   const vault = vaults.find((v) => v.id === id);
 
@@ -64,6 +65,15 @@ export default function VaultDetailPage() {
             </button>
           </div>
 
+          {/* Search */}
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search in vault..."
+            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+          />
+
           {showForm && (
             <div className="mb-4">
               <ItemForm onSubmit={handleCreate} onCancel={() => setShowForm(false)} />
@@ -78,8 +88,14 @@ export default function VaultDetailPage() {
               <p className="text-sm mt-1">Add your first password or secure note.</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {currentItems.map((item) => (
+            <div className="space-y-1">
+              {currentItems.filter(item => {
+                if (!search.trim()) return true;
+                const q = search.toLowerCase();
+                return (item.data.name || '').toLowerCase().includes(q) ||
+                  (item.data.username || '').toLowerCase().includes(q) ||
+                  (item.data.url || '').toLowerCase().includes(q);
+              }).map((item) => (
                 <div
                   key={item.id}
                   onClick={() => { setSelectedItem(item); setShowForm(false); }}

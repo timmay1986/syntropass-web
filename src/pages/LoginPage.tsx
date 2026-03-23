@@ -12,7 +12,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await login(email, password, tenantSlug);
-    if (useAuthStore.getState().isAuthenticated) navigate('/vaults');
+    if (useAuthStore.getState().isAuthenticated) navigate('/dashboard');
   };
 
   return (

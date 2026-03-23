@@ -15,7 +15,7 @@ export default function RegisterPage() {
     e.preventDefault();
     if (password !== confirmPassword || password.length < 10) return;
     await register(email, password, tenantName, tenantSlug);
-    if (useAuthStore.getState().isAuthenticated) navigate('/vaults');
+    if (useAuthStore.getState().isAuthenticated) navigate('/dashboard');
   };
 
   return (
