@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Eye, EyeOff, Copy, Check, Plus, Minus, ChevronDown } from 'lucide-react';
 import { generatePassword } from '@syntropass/crypto';
+import TotpField, { isOtpAuthUri } from './TotpField';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -84,14 +85,17 @@ function FieldRowView({
 
   const isPassword = type === 'password';
   const isUrl = type === 'url';
+  const isTotp = isOtpAuthUri(value);
 
   const displayValue = isPassword && !revealed ? '••••••••••••' : value;
 
   return (
     <div className="flex items-start justify-between py-3 border-b border-zinc-800 last:border-0 group">
       <div className="min-w-0 flex-1">
-        <p className="text-xs text-zinc-500 mb-0.5">{label}</p>
-        {isUrl ? (
+        <p className="text-xs text-zinc-500 mb-0.5">{isTotp ? '2FA Code' : label}</p>
+        {isTotp ? (
+          <TotpField uri={value} />
+        ) : isUrl ? (
           <a
             href={value}
             target="_blank"
@@ -108,18 +112,20 @@ function FieldRowView({
           </p>
         )}
       </div>
-      <div className="flex items-center gap-1 ml-3 shrink-0">
-        {isPassword && (
-          <button
-            onClick={() => setRevealed((r) => !r)}
-            title={revealed ? 'Hide' : 'Reveal'}
-            className="p-1.5 rounded text-zinc-500 hover:text-zinc-200 hover:bg-zinc-700 transition-colors"
-          >
-            {revealed ? <EyeOff size={14} /> : <Eye size={14} />}
-          </button>
-        )}
-        <CopyBtn value={value} />
-      </div>
+      {!isTotp && (
+        <div className="flex items-center gap-1 ml-3 shrink-0">
+          {isPassword && (
+            <button
+              onClick={() => setRevealed((r) => !r)}
+              title={revealed ? 'Hide' : 'Reveal'}
+              className="p-1.5 rounded text-zinc-500 hover:text-zinc-200 hover:bg-zinc-700 transition-colors"
+            >
+              {revealed ? <EyeOff size={14} /> : <Eye size={14} />}
+            </button>
+          )}
+          <CopyBtn value={value} />
+        </div>
+      )}
     </div>
   );
 }
