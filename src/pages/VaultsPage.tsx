@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useVaultStore } from '@/stores/vault.store';
+import { useAuthStore } from '@/stores/auth.store';
 import VaultCard from '@/components/VaultCard';
+import ShareDialog from '@/components/ShareDialog';
 
 export default function VaultsPage() {
   const { vaults, loadVaults, createVault, deleteVault, isLoading } = useVaultStore();
+  const { user } = useAuthStore();
   const [newName, setNewName] = useState('');
   const [showCreate, setShowCreate] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
   const [deleteInput, setDeleteInput] = useState('');
+  const [shareVault, setShareVault] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     loadVaults();
@@ -68,13 +72,19 @@ export default function VaultsPage() {
         </div>
       ) : (
         <div className="space-y-2">
-          {vaults.map((vault) => (
-            <VaultCard
-              key={vault.id}
-              {...vault}
-              onDelete={() => setDeleteConfirm({ id: vault.id, name: vault.name })}
-            />
-          ))}
+          {vaults.map((vault: any) => {
+            const isOwned = !vault.ownerId || vault.ownerId === user?.id;
+            return (
+              <VaultCard
+                key={vault.id}
+                {...vault}
+                isOwned={isOwned}
+                sharedBy={!isOwned ? (vault.ownerEmail || 'someone') : undefined}
+                onDelete={() => setDeleteConfirm({ id: vault.id, name: vault.name })}
+                onShare={isOwned ? () => setShareVault({ id: vault.id, name: vault.name }) : undefined}
+              />
+            );
+          })}
         </div>
       )}
 
@@ -121,6 +131,15 @@ export default function VaultsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Share dialog */}
+      {shareVault && (
+        <ShareDialog
+          vaultId={shareVault.id}
+          vaultName={shareVault.name}
+          onClose={() => setShareVault(null)}
+        />
       )}
     </div>
   );

@@ -1,15 +1,35 @@
+import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/stores/auth.store';
 import { Link, useLocation } from 'react-router-dom';
+import { api } from '@/api/client';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { user, tenant, logout } = useAuthStore();
   const location = useLocation();
+  const [pendingInviteCount, setPendingInviteCount] = useState(0);
+
+  useEffect(() => {
+    const loadInviteCount = async () => {
+      try {
+        const invites = await api<any[]>('/api/sharing/invites');
+        const pending = (invites || []).filter((inv: any) => inv.status === 'pending');
+        setPendingInviteCount(pending.length);
+      } catch {
+        // Silently fail — not critical
+      }
+    };
+    loadInviteCount();
+    // Refresh invite count every 60 seconds
+    const interval = setInterval(loadInviteCount, 60_000);
+    return () => clearInterval(interval);
+  }, []);
 
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: '🏠' },
     { path: '/vaults', label: 'Vaults', icon: '🔐' },
     { path: '/generator', label: 'Generator', icon: '🎲' },
     { path: '/tokens', label: 'API Tokens', icon: '🔗' },
+    { path: '/invites', label: 'Invites', icon: '📨', badge: pendingInviteCount },
   ];
 
   return (
@@ -33,7 +53,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               }`}
             >
               <span>{item.icon}</span>
-              {item.label}
+              <span className="flex-1">{item.label}</span>
+              {item.badge != null && item.badge > 0 && (
+                <span className="bg-blue-600 text-white text-xs font-semibold px-1.5 py-0.5 rounded-full min-w-[1.25rem] text-center">
+                  {item.badge}
+                </span>
+              )}
             </Link>
           ))}
         </nav>

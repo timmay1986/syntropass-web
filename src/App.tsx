@@ -7,6 +7,7 @@ import VaultDetailPage from '@/pages/VaultDetailPage';
 import GeneratorPage from '@/pages/GeneratorPage';
 import DashboardPage from '@/pages/DashboardPage';
 import TokensPage from '@/pages/TokensPage';
+import InvitesPage from '@/pages/InvitesPage';
 import Layout from '@/components/Layout';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="/vaults/:id" element={<ProtectedRoute><VaultDetailPage /></ProtectedRoute>} />
         <Route path="/generator" element={<ProtectedRoute><GeneratorPage /></ProtectedRoute>} />
         <Route path="/tokens" element={<ProtectedRoute><TokensPage /></ProtectedRoute>} />
+        <Route path="/invites" element={<ProtectedRoute><InvitesPage /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
