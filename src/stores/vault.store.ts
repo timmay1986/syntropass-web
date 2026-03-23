@@ -158,7 +158,7 @@ export const useVaultStore = create<VaultState>((set, get) => ({
     const encrypted = cryptoEncryptItem(vaultKey, data);
 
     await api(`/api/vaults/${vaultId}/items/${itemId}`, {
-      method: 'PATCH',
+      method: 'PUT',
       body: JSON.stringify({
         encryptedData: encodeEncrypted(encrypted),
       }),
