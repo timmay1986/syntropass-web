@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Eye, EyeOff, Copy, Check, Plus, Minus, ChevronDown } from 'lucide-react';
 import { generatePassword } from '@syntropass/crypto';
-import TotpField, { isOtpAuthUri } from './TotpField';
+import TotpField, { isOtpAuthUri, isTotpField } from './TotpField';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -85,7 +85,7 @@ function FieldRowView({
 
   const isPassword = type === 'password';
   const isUrl = type === 'url';
-  const isTotp = isOtpAuthUri(value);
+  const isTotp = isOtpAuthUri(value) || isTotpField(label, value);
 
   const displayValue = isPassword && !revealed ? '••••••••••••' : value;
 
@@ -94,7 +94,7 @@ function FieldRowView({
       <div className="min-w-0 flex-1">
         <p className="text-xs text-zinc-500 mb-0.5">{isTotp ? '2FA Code' : label}</p>
         {isTotp ? (
-          <TotpField uri={value} />
+          isOtpAuthUri(value) ? <TotpField uri={value} /> : <TotpField secret={value} />
         ) : isUrl ? (
           <a
             href={value}

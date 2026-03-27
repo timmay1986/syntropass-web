@@ -2,10 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import * as OTPAuth from 'otpauth';
 
 interface Props {
-  uri: string; // otpauth://totp/...?secret=...
+  uri?: string;   // otpauth://totp/...?secret=...
+  secret?: string; // bare Base32 secret
 }
 
-export default function TotpField({ uri }: Props) {
+export default function TotpField({ uri, secret }: Props) {
   const [code, setCode] = useState('');
   const [remaining, setRemaining] = useState(30);
   const [error, setError] = useState('');
@@ -13,17 +14,30 @@ export default function TotpField({ uri }: Props) {
 
   const generate = useCallback(() => {
     try {
-      const totp = OTPAuth.URI.parse(uri);
-      if (totp instanceof OTPAuth.TOTP) {
-        setCode(totp.generate());
-        const period = totp.period || 30;
-        setRemaining(period - (Math.floor(Date.now() / 1000) % period));
-        setError('');
+      let totp: OTPAuth.TOTP;
+      if (uri) {
+        const parsed = OTPAuth.URI.parse(uri);
+        if (!(parsed instanceof OTPAuth.TOTP)) return;
+        totp = parsed;
+      } else if (secret) {
+        const clean = secret.replace(/[\s-]/g, '').toUpperCase();
+        totp = new OTPAuth.TOTP({
+          secret: OTPAuth.Secret.fromBase32(clean),
+          algorithm: 'SHA1',
+          digits: 6,
+          period: 30,
+        });
+      } else {
+        return;
       }
+      setCode(totp.generate());
+      const period = totp.period || 30;
+      setRemaining(period - (Math.floor(Date.now() / 1000) % period));
+      setError('');
     } catch (err: any) {
       setError('Invalid TOTP');
     }
-  }, [uri]);
+  }, [uri, secret]);
 
   useEffect(() => {
     generate();
@@ -81,4 +95,15 @@ export default function TotpField({ uri }: Props) {
 /** Check if a string is an otpauth:// URI */
 export function isOtpAuthUri(value: string): boolean {
   return typeof value === 'string' && value.startsWith('otpauth://');
+}
+
+const OTP_LABEL_PATTERN = /^(einmalpasswort|otp|totp|2fa|one.?time|authenticator|mfa)$/i;
+const BASE32_PATTERN = /^[A-Za-z2-7]{16,}=*$/;
+
+/** Check if a custom field is a TOTP secret based on label + value */
+export function isTotpField(label: string, value: string): boolean {
+  if (!value || typeof value !== 'string') return false;
+  if (isOtpAuthUri(value)) return true;
+  const clean = value.replace(/[\s-]/g, '');
+  return OTP_LABEL_PATTERN.test(label.trim()) && BASE32_PATTERN.test(clean);
 }
